@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Drawing Site</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+    <div id="canvasLayers">
+        <canvas id="canvas"></canvas>
+        <canvas id="canvas1"></canvas>
+        <canvas id="canvas2"></canvas>
+    </div>
+
+    <canvas id="canvasOverlay" oncontextmenu="return false;"></canvas>
+
+
+    <div class="toolbar">
+        <input type="color" id="colorPicker" value="#000000">
+        <input type="color" id="bgColorPicker" value="#ffffff">
+
+        <button id="fill">Fill</button>
+
+        <button id="pen" style="background-color: #7a7860;">Pen</button>
+        <button id="erase">Eraser</button>
+        <button id="increase">+</button>
+        <button id="decrease">-</button>
+
+        <button id="text">Text</button>
+        <select name="font" id="font">
+            <option value="Arial">Arial</option>
+            <option value="Courier New">Courier New</option>
+            <option value="Times New Roman">Times New Roman</option>
+            <option value="Verdana">Verdana</option>
+        </select>
+        <select name="fontSize" id="fontSize">
+            <option value="5px">5px</option>
+            <option value="10px">10px</option>
+            <option value="15px">15px</option>
+            <option value="20px">20px</option>
+            <option value="25px">25px</option>
+            <option value="30px">30px</option>
+            <option value="35px">35px</option>
+            <option value="40px">40px</option>
+            <option value="45px">45px</option>
+            <option value="50px">50px</option>
+        </select>
+
+        <select name="layers" id="layers">
+            <option value="0">Layer 1</option>
+            <option value="1">Layer 2</option>
+            <option value="2">Layer 3</option>
+        </select>
+
+        <button id="undo">Undo</button>
+
+        <button id="redo">Redo</button>
+
+        <button id="clear">Clear Layer</button>
+
+        <button id="save">Save Image</button>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+
+</html>
