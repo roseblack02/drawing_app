@@ -330,7 +330,7 @@ canvas_overlay.addEventListener('mousemove', function (event) {
         }
     });
 
-    //update canvas when drawing
+    //update mouse cursor in the overlay layer
     requestAnimationFrame(() => {
         //clear the overlay canvas
         ctx_overlay.clearRect(0, 0, canvas_overlay.width, canvas_overlay.height);
@@ -345,6 +345,7 @@ canvas_overlay.addEventListener('mousemove', function (event) {
         }
     });
 
+    //update canvas when drawing
     //check if the user is holding down the mouse button (drag event didnt work >.<)
     if (mouse.down) {
         //draw
