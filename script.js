@@ -143,12 +143,26 @@ document.getElementById('fill').addEventListener('click', function () {
 document.getElementById('pen').addEventListener('click', function () {
     brush.mode = 'draw';
     brushTypeSelection('pen');
+
+    // Enable increase and decrease
+    document.getElementById('increase').style.backgroundColor = '#f0ecc0';
+    document.getElementById('increase').disabled = false;
+
+    document.getElementById('decrease').style.backgroundColor = '#f0ecc0';
+    document.getElementById('decrease').disabled = false;
 });
 
 //set brush to erase
 document.getElementById('erase').addEventListener('click', function () {
     brush.mode = 'erase';
     brushTypeSelection('erase');
+
+    // Enable increase and decrease
+    document.getElementById('increase').style.backgroundColor = '#f0ecc0';
+    document.getElementById('increase').disabled = false;
+
+    document.getElementById('decrease').style.backgroundColor = '#f0ecc0';
+    document.getElementById('decrease').disabled = false;
 });
 
 //change brush size with toolbar
@@ -385,6 +399,13 @@ function brushTypeSelection(type) {
     document.getElementById('font').style.backgroundColor = '#7a7860';
     document.getElementById('font').disabled = true;
 
+    // Disable increase and decrease
+    document.getElementById('increase').style.backgroundColor = '#7a7860';
+    document.getElementById('increase').disabled = true;
+
+    document.getElementById('decrease').style.backgroundColor = '#7a7860';
+    document.getElementById('decrease').disabled = true;
+
     // Grey out selected brush
     document.getElementById(type).style.backgroundColor = '#7a7860';
 }
@@ -500,7 +521,6 @@ function fill(context, x, y, colour, target_colour, pixels, visited, iteration) 
         clearTimeout(timout_fill);
     }
 }
-
 
 
 //save to history
