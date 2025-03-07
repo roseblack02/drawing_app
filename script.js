@@ -168,6 +168,9 @@ document.getElementById('text').addEventListener('click', function () {
     // Make font size option available
     document.getElementById('fontSize').style.backgroundColor = '#f0ecc0';
     document.getElementById('fontSize').disabled = false;
+
+    document.getElementById('font').style.backgroundColor = '#f0ecc0';
+    document.getElementById('font').disabled = false;
 });
 
 //change font
@@ -375,9 +378,12 @@ function brushTypeSelection(type) {
     document.getElementById('erase').style.backgroundColor = '#f0ecc0';
     document.getElementById('text').style.backgroundColor = '#f0ecc0';
 
-    // Disable font size option
+    // Disable font size and type options
     document.getElementById('fontSize').style.backgroundColor = '#7a7860';
     document.getElementById('fontSize').disabled = true;
+
+    document.getElementById('font').style.backgroundColor = '#7a7860';
+    document.getElementById('font').disabled = true;
 
     // Grey out selected brush
     document.getElementById(type).style.backgroundColor = '#7a7860';
@@ -494,6 +500,8 @@ function fill(context, x, y, colour, target_colour, pixels, visited, iteration) 
         clearTimeout(timout_fill);
     }
 }
+
+
 
 //save to history
 function saveCanvas(context) {
