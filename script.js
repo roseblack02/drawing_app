@@ -31,10 +31,13 @@ canvas_overlay.height = window.innerHeight;
 //resize canvas with window resize
 window.addEventListener('resize', function () {
     //save layers to prevent it from being erased when resizing
-    let layer_data = [];
-    layers.forEach(layer => {
-        layer_data.push(layer.ctx.getImageData(0, 0, layer.canvas.width, layer.canvas.height));
-    })
+    let layer_data = layers.map(layer => layer.ctx.getImageData(0, 0, layer.canvas.width, layer.canvas.height));
+    layers.forEach((layer, i) => {
+        layer.canvas.width = window.innerWidth;
+        layer.canvas.height = window.innerHeight;
+        layer.ctx.putImageData(layer_data[i], 0, 0);
+    });
+
 
     //resize
     layers.forEach(layer => {
@@ -198,11 +201,10 @@ document.getElementById('undo').addEventListener('click', function () {
         history.position--;
 
         history.img_data[history.position].context.putImageData(history.img_data[history.position].data, 0, 0);
+        document.getElementById('redo').style.backgroundColor = '#f0ecc0';
     } else {
         document.getElementById('undo').style.backgroundColor = '#7a7860';
     }
-
-    document.getElementById('redo').style.backgroundColor = '#f0ecc0';
 });
 
 //redo
@@ -212,11 +214,10 @@ document.getElementById('redo').addEventListener('click', function () {
         history.position++;
 
         history.img_data[history.position].context.putImageData(history.img_data[history.position].data, 0, 0);
+        document.getElementById('undo').style.backgroundColor = '#f0ecc0';
     } else {
         document.getElementById('redo').style.backgroundColor = '#7a7860';
     }
-
-    document.getElementById('undo').style.backgroundColor = '#f0ecc0';
 });
 
 //clear canvas
@@ -320,8 +321,8 @@ canvas_overlay.addEventListener('mousemove', function (event) {
         }
     });
 
-    //update canvas every 10 milliseconds when drawing cursor
-    setTimeout(() => {
+    //update canvas when drawing
+    requestAnimationFrame(() => {
         //clear the overlay canvas
         ctx_overlay.clearRect(0, 0, canvas_overlay.width, canvas_overlay.height);
 
@@ -333,7 +334,7 @@ canvas_overlay.addEventListener('mousemove', function (event) {
         } else {
             circ(mouse.x, mouse.y, brush.size / 2, brush.cursor_colour, ctx_overlay);
         }
-    }, 10);
+    });
 
     //check if the user is holding down the mouse button (drag event didnt work >.<)
     if (mouse.down) {
