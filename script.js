@@ -103,7 +103,7 @@ const brush = {
     },
 }
 
-//chnage brush attributes with keyboard
+//change brush attributes with keyboard
 document.addEventListener('keydown', function (event) {
     //check the key pressed
     var keyPressed = event.key;
@@ -133,28 +133,19 @@ document.getElementById('bgColorPicker').addEventListener('change', function () 
 //set brush to fill
 document.getElementById('fill').addEventListener('click', function () {
     brush.mode = 'fill';
-    document.getElementById('fill').style.backgroundColor = '#7a7860';
-    document.getElementById('pen').style.backgroundColor = '#f0ecc0';
-    document.getElementById('erase').style.backgroundColor = '#f0ecc0';
-    document.getElementById('text').style.backgroundColor = '#f0ecc0';
+    brushTypeSelection('fill');
 });
 
 //set brush to draw
 document.getElementById('pen').addEventListener('click', function () {
     brush.mode = 'draw';
-    document.getElementById('pen').style.backgroundColor = '#7a7860';
-    document.getElementById('erase').style.backgroundColor = '#f0ecc0';
-    document.getElementById('fill').style.backgroundColor = '#f0ecc0';
-    document.getElementById('text').style.backgroundColor = '#f0ecc0';
+    brushTypeSelection('pen');
 });
 
 //set brush to erase
 document.getElementById('erase').addEventListener('click', function () {
     brush.mode = 'erase';
-    document.getElementById('erase').style.backgroundColor = '#7a7860';
-    document.getElementById('pen').style.backgroundColor = '#f0ecc0';
-    document.getElementById('fill').style.backgroundColor = '#f0ecc0';
-    document.getElementById('text').style.backgroundColor = '#f0ecc0';
+    brushTypeSelection('erase');
 });
 
 //change brush size with toolbar
@@ -169,10 +160,11 @@ document.getElementById('decrease').addEventListener('click', function () {
 //set brush to text
 document.getElementById('text').addEventListener('click', function () {
     brush.mode = 'text';
-    document.getElementById('text').style.backgroundColor = '#7a7860';
-    document.getElementById('erase').style.backgroundColor = '#f0ecc0';
-    document.getElementById('fill').style.backgroundColor = '#f0ecc0';
-    document.getElementById('pen').style.backgroundColor = '#f0ecc0';
+    brushTypeSelection('text');
+
+    // Make font size option available
+    document.getElementById('fontSize').style.backgroundColor = '#f0ecc0';
+    document.getElementById('fontSize').disabled = false;
 });
 
 //change font
@@ -363,6 +355,22 @@ canvas_overlay.addEventListener('mousemove', function (event) {
         mouse.prev_y = mouse.y;
     }
 });
+
+// Function used to grey out selected brush type button
+function brushTypeSelection(type) {
+    // Set all to default colour
+    document.getElementById('fill').style.backgroundColor = '#f0ecc0';
+    document.getElementById('pen').style.backgroundColor = '#f0ecc0';
+    document.getElementById('erase').style.backgroundColor = '#f0ecc0';
+    document.getElementById('text').style.backgroundColor = '#f0ecc0';
+
+    // Disable font size option
+    document.getElementById('fontSize').style.backgroundColor = '#7a7860';
+    document.getElementById('fontSize').disabled = true;
+
+    // Grey out selected brush
+    document.getElementById(type).style.backgroundColor = '#7a7860';
+}
 
 //get colour  of current pixel
 function getPixelColour(context, x, y) {
