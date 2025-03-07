@@ -228,6 +228,9 @@ document.getElementById('redo').addEventListener('click', function () {
 
 //clear canvas
 document.getElementById('clear').addEventListener('click', function () {
+    //stop fill as there is a bug with fills restarting when using clear right after filling
+    clearTimeout(timout_fill);
+
     //save image data before clearing
     saveCanvas(layers[current_layer].ctx);
 
