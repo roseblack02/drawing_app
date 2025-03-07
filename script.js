@@ -202,6 +202,9 @@ document.getElementById('undo').addEventListener('click', function () {
 
         history.img_data[history.position].context.putImageData(history.img_data[history.position].data, 0, 0);
         document.getElementById('redo').style.backgroundColor = '#f0ecc0';
+
+        //stop fill as there is a bug with fills restarting when using undo right after filling
+        clearTimeout(timout_fill);
     } else {
         document.getElementById('undo').style.backgroundColor = '#7a7860';
     }
@@ -215,6 +218,9 @@ document.getElementById('redo').addEventListener('click', function () {
 
         history.img_data[history.position].context.putImageData(history.img_data[history.position].data, 0, 0);
         document.getElementById('undo').style.backgroundColor = '#f0ecc0';
+
+        //stop fill as there is a bug with fills restarting when using redo right after filling
+        clearTimeout(timout_fill);
     } else {
         document.getElementById('redo').style.backgroundColor = '#7a7860';
     }
