@@ -84,6 +84,7 @@ const brush = {
     font: document.getElementById('font').value,
     font_size: document.getElementById('fontSize').value,
     type: 'round',
+    isFilling: false,
     increaseSize: function () {
         if (this.size <= size_max - size_inc) {
             this.size += size_inc;
@@ -209,6 +210,9 @@ document.getElementById('layers').addEventListener('change', function () {
 //undo
 document.getElementById('undo').addEventListener('click', function () {
     if (history.position == history.img_data.length) {
+        //reset filling
+        brush.isFilling = false;
+
         saveCanvas(layers[current_layer].ctx);
         history.position--;
     }
@@ -219,9 +223,6 @@ document.getElementById('undo').addEventListener('click', function () {
 
         history.img_data[history.position].context.putImageData(history.img_data[history.position].data, 0, 0);
         document.getElementById('redo').style.backgroundColor = '#f0ecc0';
-
-        //stop fill as there is a bug with fills restarting when using undo right after filling
-        clearTimeout(timout_fill);
     } else {
         document.getElementById('undo').style.backgroundColor = '#7a7860';
     }
@@ -231,13 +232,13 @@ document.getElementById('undo').addEventListener('click', function () {
 document.getElementById('redo').addEventListener('click', function () {
     //load next image data from array if available
     if (history.position < history.img_data.length - 1) {
+        //reset filling
+        brush.isFilling = false;
+
         history.position++;
 
         history.img_data[history.position].context.putImageData(history.img_data[history.position].data, 0, 0);
         document.getElementById('undo').style.backgroundColor = '#f0ecc0';
-
-        //stop fill as there is a bug with fills restarting when using redo right after filling
-        clearTimeout(timout_fill);
     } else {
         document.getElementById('redo').style.backgroundColor = '#7a7860';
     }
@@ -245,8 +246,8 @@ document.getElementById('redo').addEventListener('click', function () {
 
 //clear canvas
 document.getElementById('clear').addEventListener('click', function () {
-    //stop fill as there is a bug with fills restarting when using clear right after filling
-    clearTimeout(timout_fill);
+    //reset filling
+    brush.isFilling = false;
 
     //save image data before clearing
     saveCanvas(layers[current_layer].ctx);
@@ -256,9 +257,11 @@ document.getElementById('clear').addEventListener('click', function () {
 
 //save image
 document.getElementById('save').addEventListener('click', function () {
+    //reset filling
+    brush.isFilling = false;
+
     //clear the overlay canvas
     ctx_overlay.clearRect(0, 0, canvas_overlay.width, canvas_overlay.height);
-
 
     //loop through all layers and get image data
     layers.forEach(layer => {
@@ -277,6 +280,9 @@ canvas_overlay.addEventListener('mousedown', function (event) {
     //set mouse down to true (drag event doesnt work for me >.<)
     mouse.down = true;
 
+    //reset filling
+    brush.isFilling = false;
+
     //get coordinates of mouse relative to canvas
     const rect = canvas_overlay.getBoundingClientRect();
     mouse.x = event.clientX - rect.left;
@@ -285,9 +291,6 @@ canvas_overlay.addEventListener('mousedown', function (event) {
 
     //save current image data to history before next line is drawn
     saveCanvas(layers[current_layer].ctx);
-
-    //stop filling when another action is performed
-    clearTimeout(timout_fill);
 
     //draw
     if (brush.mode === 'draw' && mouse.button === 0) {
@@ -421,7 +424,7 @@ function getPixelColour(context, x, y) {
 //set colour at a specified pixel
 function setPixelColour(context, x, y, colour) {
     context.fillStyle = colour;
-    context.fillRect(x, y, 2, 2);
+    context.fillRect(x, y, 4, 4);
 }
 
 //check if colours match
@@ -440,86 +443,73 @@ function hexToRGBA(colour) {
     return [r, g, b, 255];
 }
 
-var timout_fill;
-function fill(context, x, y, colour, target_colour, pixels, visited, iteration) {
-    target_colour = typeof (target_colour) === 'undefined' ? null : target_colour;
-    pixels = typeof (pixels) === 'undefined' ? null : pixels;
-    visited = typeof (visited) === 'undefined' ? null : visited;
-    iteration = typeof (iteration) === 'undefined' ? null : iteration;
+// Phil Function based on one from William Malone
+function fill(context, x, y, colour) {
+    //get target colour selected
+    let targetColour = getPixelColour(context, x, y);
 
-    clearTimeout(timout_fill);
-
-    //colour being targeted
-    if (target_colour === null) {
-        target_colour = getPixelColour(context, x, y);
-    }
-
-    //stack of pixels to check
-    if (pixels === null) {
-        pixels = [{ x: x, y: y }];
-    }
-
-    //used to check if a pixel has alreayd been checked
-    if (visited === null) {
-        visited = [];
-    }
-
-    //keep track of how many times the function has been called
-    if (iteration === null) {
-        iteration = 0;
-    }
-
-    //return if target colour is the same as the fill colour
-    if (coloursMatch(target_colour, hexToRGBA(colour))) {
+    //return early if the target is the same as the fill colour or if already filling
+    if (coloursMatch(targetColour, hexToRGBA(colour)) || brush.isFilling) {
+        brush.isFilling = false; c
         return;
     }
 
-    //use count to do a set amount of iterations per function call
-    let count = 0;
-    //loop while there are pixels in the stack
-    while (pixels.length > 0) {
-        //getlast pixel
-        let current_pixel = pixels.pop();
-        let current_x = current_pixel.x;
-        let current_y = current_pixel.y;
+    brush.isFilling = true;
 
-        if (
-            !visited.includes([current_x, current_y]) &&
-            current_x >= 0 && current_x < context.canvas.width &&
-            current_y >= 0 && current_y < context.canvas.height &&
-            //!visited.has(`${current_x},${current_y}`) &&
-            coloursMatch(getPixelColour(context, current_x, current_y), target_colour)
+    let step = 4;
+    let pixelStack = [[x, y]];
 
-        ) {
-            //change the colour of the current pixel
-            setPixelColour(context, current_x, current_y, colour);
-
-            //set pixel to visited
-            visited.push([current_x, current_y]);
-
-            //add nearby pixels to stack
-            pixels.push({ x: current_x, y: current_y + 2 });
-            pixels.push({ x: current_x + 2, y: current_y });
-            pixels.push({ x: current_x, y: current_y - 2 });
-            pixels.push({ x: current_x - 2, y: current_y });
+    //split the filling process into smaller chunks to avoid timeout
+    function floodFillStep() {
+        if (pixelStack.length === 0 || !brush.isFilling) {
+            brush.isFilling = false;
+            return;
         }
-        count++;
-        if (count > 1000) {
-            break;
+
+        let pos = pixelStack.pop();
+        x = pos[0];
+        y = pos[1];
+
+        while (y > step && coloursMatch(targetColour, getPixelColour(context, x, y - step))) {
+            y -= step;
         }
+
+        let reachLeft = false;
+        let reachRight = false;
+
+        while (y < context.canvas.height - step && coloursMatch(targetColour, getPixelColour(context, x, y + step))) {
+            setPixelColour(context, x, y, colour);
+            y += step;
+
+            if (x > step) {
+                if (coloursMatch(targetColour, getPixelColour(context, x - step, y))) {
+                    if (!reachLeft) {
+                        pixelStack.push([x - step, y]);
+                        reachLeft = true;
+                    }
+                } else if (reachLeft) {
+                    reachLeft = false;
+                }
+            }
+
+            if (x < context.canvas.width - 1) {
+                if (coloursMatch(targetColour, getPixelColour(context, x + step, y))) {
+                    if (!reachRight) {
+                        pixelStack.push([x + step, y]);
+                        reachRight = true;
+                    }
+                } else {
+                    reachRight = false;
+                }
+            }
+        }
+
+        //call the next chunk of flood fill after the current chunk completes
+        requestAnimationFrame(floodFillStep);
     }
 
-    //continue filling after timeout if there are still pixels to check
-    //or if the iterations hasnt hit the limit
-    if (pixels.length > 0 && iteration < 1000) {
-        //copy stack of pixels and rerun function
-        new_pixel = pixels.shift();
-        iteration++;
-        timout_fill = setTimeout(function () { fill(context, new_pixel.x, new_pixel.y, colour, target_colour, pixels, visited, iteration); }, 60);
-    } else {
-        //stop filling
-        clearTimeout(timout_fill);
-    }
+    //start the filling process
+    floodFillStep();
 }
 
 
