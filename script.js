@@ -424,7 +424,7 @@ function getPixelColour(context, x, y) {
 //set colour at a specified pixel
 function setPixelColour(context, x, y, colour) {
     context.fillStyle = colour;
-    context.fillRect(x, y, 4, 4);
+    context.fillRect(x, y, 2, 2);
 }
 
 //check if colours match
@@ -456,7 +456,7 @@ function fill(context, x, y, colour) {
 
     brush.isFilling = true;
 
-    let step = 4;
+    let step = 1;
     let pixelStack = [[x, y]];
 
     //split the filling process into smaller chunks to avoid timeout
