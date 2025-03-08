@@ -14,7 +14,7 @@ layers = [
     }
 ]
 
-var current_layer = 0;
+var curLayer = 0;
 
 //set size of every canvas
 layers.forEach(layer => {
@@ -23,19 +23,19 @@ layers.forEach(layer => {
 })
 
 //get canvas for overlay for the cursor and set size
-const canvas_overlay = /** @type {HTMLCanvasElement} */ document.getElementById('canvasOverlay');
-const ctx_overlay = canvas_overlay.getContext('2d');
-canvas_overlay.width = window.innerWidth;
-canvas_overlay.height = window.innerHeight;
+const canvasOverlay = /** @type {HTMLCanvasElement} */ document.getElementById('canvasOverlay');
+const ctxOverlay = canvasOverlay.getContext('2d');
+canvasOverlay.width = window.innerWidth;
+canvasOverlay.height = window.innerHeight;
 
 //resize canvas with window resize
 window.addEventListener('resize', function () {
     //save layers to prevent it from being erased when resizing
-    let layer_data = layers.map(layer => layer.ctx.getImageData(0, 0, layer.canvas.width, layer.canvas.height));
+    let layerData = layers.map(layer => layer.ctx.getImageData(0, 0, layer.canvas.width, layer.canvas.height));
     layers.forEach((layer, i) => {
         layer.canvas.width = window.innerWidth;
         layer.canvas.height = window.innerHeight;
-        layer.ctx.putImageData(layer_data[i], 0, 0);
+        layer.ctx.putImageData(layerData[i], 0, 0);
     });
 
 
@@ -45,20 +45,20 @@ window.addEventListener('resize', function () {
         layer.canvas.height = window.innerHeight;
     })
 
-    canvas_overlay.width = window.innerWidth;
-    canvas_overlay.height = window.innerHeight;
+    canvasOverlay.width = window.innerWidth;
+    canvasOverlay.height = window.innerHeight;
 
     //put image data back onto the layers
     let i = 0;
     layers.forEach(layer => {
-        layer_data.push(layer.ctx.putImageData(layer_data[i], 0, 0));
+        layerData.push(layer.ctx.putImageData(layerData[i], 0, 0));
         i++;
     })
 })
 
 //undo and redo image data
 const history = {
-    img_data: [],
+    imgData: [],
     position: 0,
 }
 
@@ -71,39 +71,39 @@ const mouse = {
 }
 
 //brush attributes
-const size_max = 100;
-const size_min = 5;
-const size_inc = 5;
+const sizeMax = 100;
+const sizeMin = 5;
+const sizeInc = 5;
 
 const brush = {
     mode: 'draw',
     size: 10,
     colour: document.getElementById('colorPicker').value,
-    bg_colour: document.getElementById('bgColorPicker').value,
-    cursor_colour: 'black',
+    bgColour: document.getElementById('bgColorPicker').value,
+    cursorColour: 'black',
     font: document.getElementById('font').value,
-    font_size: document.getElementById('fontSize').value,
+    fontSize: document.getElementById('fontSize').value,
     type: 'round',
     isFilling: false,
     increaseSize: function () {
-        if (this.size <= size_max - size_inc) {
-            this.size += size_inc;
+        if (this.size <= sizeMax - sizeInc) {
+            this.size += sizeInc;
             document.getElementById('decrease').style.backgroundColor = '#f0ecc0';
         } else {
             document.getElementById('increase').style.backgroundColor = '#7a7860';
         }
         //clear the overlay canvas
-        ctx_overlay.clearRect(0, 0, canvas_overlay.width, canvas_overlay.height);
+        ctxOverlay.clearRect(0, 0, canvasOverlay.width, canvasOverlay.height);
     },
     decreaseSize: function () {
-        if (this.size >= size_min + size_inc) {
-            this.size -= size_inc;
+        if (this.size >= sizeMin + sizeInc) {
+            this.size -= sizeInc;
             document.getElementById('increase').style.backgroundColor = '#f0ecc0';
         } else {
             document.getElementById('decrease').style.backgroundColor = '#7a7860';
         }
         //clear the overlay canvas
-        ctx_overlay.clearRect(0, 0, canvas_overlay.width, canvas_overlay.height);
+        ctxOverlay.clearRect(0, 0, canvasOverlay.width, canvasOverlay.height);
     },
 }
 
@@ -131,7 +131,7 @@ document.getElementById('colorPicker').addEventListener('change', function () {
 
 document.getElementById('bgColorPicker').addEventListener('change', function () {
     //get the selected color from the color picker
-    brush.bg_colour = document.getElementById('bgColorPicker').value;
+    brush.bgColour = document.getElementById('bgColorPicker').value;
 });
 
 //set brush to fill
@@ -192,28 +192,28 @@ document.getElementById('text').addEventListener('click', function () {
 document.getElementById('font').addEventListener('change', function () {
     brush.font = document.getElementById('font').value;
     //clear the overlay canvas
-    ctx_overlay.clearRect(0, 0, canvas_overlay.width, canvas_overlay.height);
+    ctxOverlay.clearRect(0, 0, canvasOverlay.width, canvasOverlay.height);
 });
 
 //change font size
 document.getElementById('fontSize').addEventListener('change', function () {
-    brush.font_size = document.getElementById('fontSize').value;
+    brush.fontSize = document.getElementById('fontSize').value;
     //clear the overlay canvas
-    ctx_overlay.clearRect(0, 0, canvas_overlay.width, canvas_overlay.height);
+    ctxOverlay.clearRect(0, 0, canvasOverlay.width, canvasOverlay.height);
 });
 
 //swap layers
 document.getElementById('layers').addEventListener('change', function () {
-    current_layer = Number(document.getElementById('layers').value);
+    curLayer = Number(document.getElementById('layers').value);
 });
 
 //undo
 document.getElementById('undo').addEventListener('click', function () {
-    if (history.position == history.img_data.length) {
+    if (history.position == history.imgData.length) {
         //reset filling
         brush.isFilling = false;
 
-        saveCanvas(layers[current_layer].ctx);
+        saveCanvas(layers[curLayer].ctx);
         history.position--;
     }
 
@@ -221,7 +221,7 @@ document.getElementById('undo').addEventListener('click', function () {
     if (history.position > 0) {
         history.position--;
 
-        history.img_data[history.position].context.putImageData(history.img_data[history.position].data, 0, 0);
+        history.imgData[history.position].context.putImageData(history.imgData[history.position].data, 0, 0);
         document.getElementById('redo').style.backgroundColor = '#f0ecc0';
     } else {
         document.getElementById('undo').style.backgroundColor = '#7a7860';
@@ -231,13 +231,13 @@ document.getElementById('undo').addEventListener('click', function () {
 //redo
 document.getElementById('redo').addEventListener('click', function () {
     //load next image data from array if available
-    if (history.position < history.img_data.length - 1) {
+    if (history.position < history.imgData.length - 1) {
         //reset filling
         brush.isFilling = false;
 
         history.position++;
 
-        history.img_data[history.position].context.putImageData(history.img_data[history.position].data, 0, 0);
+        history.imgData[history.position].context.putImageData(history.imgData[history.position].data, 0, 0);
         document.getElementById('undo').style.backgroundColor = '#f0ecc0';
     } else {
         document.getElementById('redo').style.backgroundColor = '#7a7860';
@@ -250,9 +250,9 @@ document.getElementById('clear').addEventListener('click', function () {
     brush.isFilling = false;
 
     //save image data before clearing
-    saveCanvas(layers[current_layer].ctx);
+    saveCanvas(layers[curLayer].ctx);
 
-    layers[current_layer].ctx.clearRect(0, 0, layers[current_layer].canvas.width, layers[current_layer].canvas.height);
+    layers[curLayer].ctx.clearRect(0, 0, layers[curLayer].canvas.width, layers[curLayer].canvas.height);
 });
 
 //save image
@@ -261,22 +261,22 @@ document.getElementById('save').addEventListener('click', function () {
     brush.isFilling = false;
 
     //clear the overlay canvas
-    ctx_overlay.clearRect(0, 0, canvas_overlay.width, canvas_overlay.height);
+    ctxOverlay.clearRect(0, 0, canvasOverlay.width, canvasOverlay.height);
 
     //loop through all layers and get image data
     layers.forEach(layer => {
-        ctx_overlay.globalCompositeOperation = 'source-over';
-        ctx_overlay.drawImage(layer.canvas, 0, 0);
+        ctxOverlay.globalCompositeOperation = 'source-over';
+        ctxOverlay.drawImage(layer.canvas, 0, 0);
     })
 
     //get url of canvas image and open it in a new tab
-    window.open(canvas_overlay.toDataURL());
+    window.open(canvasOverlay.toDataURL());
 
     //clear the overlay canvas again
-    ctx_overlay.clearRect(0, 0, canvas_overlay.width, canvas_overlay.height);
+    ctxOverlay.clearRect(0, 0, canvasOverlay.width, canvasOverlay.height);
 });
 
-canvas_overlay.addEventListener('mousedown', function (event) {
+canvasOverlay.addEventListener('mousedown', function (event) {
     //set mouse down to true (drag event doesnt work for me >.<)
     mouse.down = true;
 
@@ -284,84 +284,84 @@ canvas_overlay.addEventListener('mousedown', function (event) {
     brush.isFilling = false;
 
     //get coordinates of mouse relative to canvas
-    const rect = canvas_overlay.getBoundingClientRect();
+    const rect = canvasOverlay.getBoundingClientRect();
     mouse.x = event.clientX - rect.left;
     mouse.y = event.clientY - rect.top;
     mouse.button = event.button;
 
     //save current image data to history before next line is drawn
-    saveCanvas(layers[current_layer].ctx);
+    saveCanvas(layers[curLayer].ctx);
 
     //draw
     if (brush.mode === 'draw' && mouse.button === 0) {
-        drawLine(mouse.prev_x, mouse.prev_y, mouse.x, mouse.y, brush.colour, layers[current_layer].ctx);
+        drawLine(mouse.prevX, mouse.prevY, mouse.x, mouse.y, brush.colour, layers[curLayer].ctx);
     } else if (brush.mode === 'text' && mouse.button === 0) {
         let text = prompt('Enter your text:', '...');
         if (text === null) {
             text = '';
         }
 
-        writeText(mouse.x, mouse.y, text, brush.font_size + ' ' + brush.font, brush.colour, layers[current_layer].ctx);
+        writeText(mouse.x, mouse.y, text, brush.fontSize + ' ' + brush.font, brush.colour, layers[curLayer].ctx);
     } else if (brush.mode === 'fill' && mouse.button === 0) {
         //floodfill function
-        fill(layers[current_layer].ctx, mouse.x, mouse.y, brush.colour);
+        fill(layers[curLayer].ctx, mouse.x, mouse.y, brush.colour);
 
     } else if (brush.mode === 'fill' && mouse.button === 2) {
         //floodfill function for seconday colour
-        fill(layers[current_layer].ctx, mouse.x, mouse.y, brush.bg_colour);
+        fill(layers[curLayer].ctx, mouse.x, mouse.y, brush.bgColour);
 
     } else if (brush.mode === 'draw' && mouse.button === 2) {
-        drawLine(mouse.prev_x, mouse.prev_y, mouse.x, mouse.y, brush.bg_colour, layers[current_layer].ctx);
+        drawLine(mouse.prevX, mouse.prevY, mouse.x, mouse.y, brush.bgColour, layers[curLayer].ctx);
     } else if (brush.mode === 'erase') {
         //use destination out to erase the layer
-        layers[current_layer].ctx.globalCompositeOperation = 'destination-out';
-        drawLine(mouse.prev_x, mouse.prev_y, mouse.x, mouse.y, brush.bg_colour, layers[current_layer].ctx);
+        layers[curLayer].ctx.globalCompositeOperation = 'destination-out';
+        drawLine(mouse.prevX, mouse.prevY, mouse.x, mouse.y, brush.bgColour, layers[curLayer].ctx);
     }
 
-    mouse.prev_x = mouse.x;
-    mouse.prev_y = mouse.y;
+    mouse.prevX = mouse.x;
+    mouse.prevY = mouse.y;
 });
 
-canvas_overlay.addEventListener('mouseup', function (event) {
+canvasOverlay.addEventListener('mouseup', function (event) {
     //rest mouse.down when user lets go of mouse button
     mouse.down = false;
     //reset layer to souce over for drawing
-    layers[current_layer].ctx.globalCompositeOperation = 'source-over';
+    layers[curLayer].ctx.globalCompositeOperation = 'source-over';
 });
 
-canvas_overlay.addEventListener('mousemove', function (event) {
+canvasOverlay.addEventListener('mousemove', function (event) {
     //get coordinates of mouse relative to canvas
-    const rect = canvas_overlay.getBoundingClientRect();
+    const rect = canvasOverlay.getBoundingClientRect();
     mouse.x = event.clientX - rect.left;
     mouse.y = event.clientY - rect.top;
 
     //set cursor colour based on what colour the mouse is hovering over
-    brush.cursor_colour = 'black';
+    brush.cursorColour = 'black';
 
     //check throuh each layer
     layers.forEach(layer => {
         //get colour the mouse is hovering over
         let colours = getPixelColour(layer.ctx, mouse.x, mouse.y);
-        let colour_combined = colours[0] + colours[1] + colours[2] + colours[3];
+        let colourCombined = colours[0] + colours[1] + colours[2] + colours[3];
 
         //check if the colour is dark and change the colour
-        if (colour_combined < 400 && colour_combined > 0) {
-            brush.cursor_colour = 'white';
+        if (colourCombined < 400 && colourCombined > 0) {
+            brush.cursorColour = 'white';
         }
     });
 
     //update mouse cursor in the overlay layer
     requestAnimationFrame(() => {
         //clear the overlay canvas
-        ctx_overlay.clearRect(0, 0, canvas_overlay.width, canvas_overlay.height);
+        ctxOverlay.clearRect(0, 0, canvasOverlay.width, canvasOverlay.height);
 
         //draw the cursor
         if (brush.mode === 'text') {
-            writeText(mouse.x, mouse.y, 'I', brush.font_size + ' courier new', brush.cursor_colour, ctx_overlay);
+            writeText(mouse.x, mouse.y, 'I', brush.fontSize + ' courier new', brush.cursorColour, ctxOverlay);
         } else if (brush.mode === 'fill') {
-            circ(mouse.x, mouse.y, 3, brush.cursor_colour, ctx_overlay);
+            circ(mouse.x, mouse.y, 3, brush.cursorColour, ctxOverlay);
         } else {
-            circ(mouse.x, mouse.y, brush.size / 2, brush.cursor_colour, ctx_overlay);
+            circ(mouse.x, mouse.y, brush.size / 2, brush.cursorColour, ctxOverlay);
         }
     });
 
@@ -370,20 +370,20 @@ canvas_overlay.addEventListener('mousemove', function (event) {
     if (mouse.down) {
         //draw
         if (brush.mode === 'draw' && mouse.button === 0) {
-            drawLine(mouse.prev_x, mouse.prev_y, mouse.x, mouse.y, brush.colour, layers[current_layer].ctx);
+            drawLine(mouse.prevX, mouse.prevY, mouse.x, mouse.y, brush.colour, layers[curLayer].ctx);
         } else if (brush.mode === 'draw' && mouse.button === 2) {
-            drawLine(mouse.prev_x, mouse.prev_y, mouse.x, mouse.y, brush.bg_colour, layers[current_layer].ctx);
+            drawLine(mouse.prevX, mouse.prevY, mouse.x, mouse.y, brush.bgColour, layers[curLayer].ctx);
         } else if (brush.mode === 'erase') {
             //use destination out to erase the layer
-            layers[current_layer].ctx.globalCompositeOperation = 'destination-out';
-            drawLine(mouse.prev_x, mouse.prev_y, mouse.x, mouse.y, brush.bg_colour, layers[current_layer].ctx);
+            layers[curLayer].ctx.globalCompositeOperation = 'destination-out';
+            drawLine(mouse.prevX, mouse.prevY, mouse.x, mouse.y, brush.bgColour, layers[curLayer].ctx);
         }
 
-        mouse.prev_x = mouse.x;
-        mouse.prev_y = mouse.y;
+        mouse.prevX = mouse.x;
+        mouse.prevY = mouse.y;
     } else {
-        mouse.prev_x = mouse.x;
-        mouse.prev_y = mouse.y;
+        mouse.prevX = mouse.x;
+        mouse.prevY = mouse.y;
     }
 });
 
@@ -416,9 +416,9 @@ function brushTypeSelection(type) {
 //get colour  of current pixel
 function getPixelColour(context, x, y) {
     //get image data
-    let img_data = context.getImageData(x, y, 1, 1).data;
+    let imgData = context.getImageData(x, y, 1, 1).data;
     //return as rgba array
-    return [img_data[0], img_data[1], img_data[2], img_data[3]];
+    return [imgData[0], imgData[1], imgData[2], imgData[3]];
 }
 
 //set colour at a specified pixel
@@ -516,18 +516,18 @@ function fill(context, x, y, colour) {
 //save to history
 function saveCanvas(context) {
     //reset length
-    history.img_data.length = history.position;
+    history.imgData.length = history.position;
     //increment position and save image data
     history.position++;
     //saving both the context and the image data for using mutliple layers
-    history.img_data.push({ context: context, data: context.getImageData(0, 0, canvas_overlay.width, canvas_overlay.height) });
+    history.imgData.push({ context: context, data: context.getImageData(0, 0, canvasOverlay.width, canvasOverlay.height) });
 
     document.getElementById('undo').style.backgroundColor = '#f0ecc0';
     document.getElementById('redo').style.backgroundColor = '#7a7860';
 }
 
 //draw line
-function drawLine(start_x, start_y, end_x, end_y, colour, context) {
+function drawLine(startX, startY, endX, endY, colour, context) {
     //line properties
     context.strokeStyle = colour;
     context.lineWidth = brush.size;
@@ -535,8 +535,8 @@ function drawLine(start_x, start_y, end_x, end_y, colour, context) {
 
     //draw line
     context.beginPath();
-    context.moveTo(start_x, start_y);
-    context.lineTo(end_x, end_y);
+    context.moveTo(startX, startY);
+    context.lineTo(endX, endY);
     context.stroke();
 }
 
