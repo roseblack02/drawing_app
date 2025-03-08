@@ -456,7 +456,7 @@ function fill(context, x, y, colour) {
 
     brush.isFilling = true;
 
-    let step = 1;
+    let step = 2;
     let pixelStack = [[x, y]];
 
     //split the filling process into smaller chunks to avoid timeout
