@@ -125,6 +125,16 @@ document.addEventListener('keydown', function (event) {
     if (keyPressed === '-' || keyPressed === '_') {
         brush.decreaseSize();
     }
+
+    //undo
+    if (keyPressed === 'z' && event.ctrlKey) {
+        undo();
+    }
+
+    //redo
+    if (keyPressed === 'y' && event.ctrlKey) {
+        redo();
+    }
 });
 
 //chnage brush colour with toolbar
@@ -248,39 +258,12 @@ document.getElementById('layers').addEventListener('change', function () {
 
 //undo
 document.getElementById('undo').addEventListener('click', function () {
-    if (history.position == history.imgData.length) {
-        //reset filling
-        brush.isFilling = false;
-
-        saveCanvas(layers[curLayer].ctx);
-        history.position--;
-    }
-
-    //load previous image data from array if available
-    if (history.position > 0) {
-        history.position--;
-
-        history.imgData[history.position].context.putImageData(history.imgData[history.position].data, 0, 0);
-        document.getElementById('redo').style.backgroundColor = '#f0ecc0';
-    } else {
-        document.getElementById('undo').style.backgroundColor = '#7a7860';
-    }
+    undo();
 });
 
 //redo
 document.getElementById('redo').addEventListener('click', function () {
-    //load next image data from array if available
-    if (history.position < history.imgData.length - 1) {
-        //reset filling
-        brush.isFilling = false;
-
-        history.position++;
-
-        history.imgData[history.position].context.putImageData(history.imgData[history.position].data, 0, 0);
-        document.getElementById('undo').style.backgroundColor = '#f0ecc0';
-    } else {
-        document.getElementById('redo').style.backgroundColor = '#7a7860';
-    }
+    redo();
 });
 
 //clear canvas
@@ -434,6 +417,41 @@ canvasOverlay.addEventListener('mousemove', function (event) {
         mouse.prevY = mouse.y;
     }
 });
+
+function undo() {
+    if (history.position == history.imgData.length) {
+        //reset filling
+        brush.isFilling = false;
+
+        saveCanvas(layers[curLayer].ctx);
+        history.position--;
+    }
+
+    //load previous image data from array if available
+    if (history.position > 0) {
+        history.position--;
+
+        history.imgData[history.position].context.putImageData(history.imgData[history.position].data, 0, 0);
+        document.getElementById('redo').style.backgroundColor = '#f0ecc0';
+    } else {
+        document.getElementById('undo').style.backgroundColor = '#7a7860';
+    }
+}
+
+function redo() {
+    //load next image data from array if available
+    if (history.position < history.imgData.length - 1) {
+        //reset filling
+        brush.isFilling = false;
+
+        history.position++;
+
+        history.imgData[history.position].context.putImageData(history.imgData[history.position].data, 0, 0);
+        document.getElementById('undo').style.backgroundColor = '#f0ecc0';
+    } else {
+        document.getElementById('redo').style.backgroundColor = '#7a7860';
+    }
+}
 
 //function used to grey out selected brush type button
 function brushTypeSelection(type) {
