@@ -16,27 +16,30 @@ canvas {
     left: 0;
     width: 100%;
     background-color: #f0f0f0;
-    padding: 1%;
+    padding: 10px;
     box-shadow: 0 2px 4px #7e7e7e;
+    flex-wrap: wrap;
+    justify-content: flex-start;
 }
 
 .toolbar button,
-input,
-select {
+.toolbar input,
+.toolbar select {
     font-family: 'Courier New', Courier, monospace;
     font-weight: bold;
-    margin-right: 1%;
-    padding: 0.5% 1%;
+    margin-right: 10px;
+    margin-bottom: 10px;
+    padding: 5px 10px;
     border: none;
     background-color: #f0ecc0;
     color: #292820;
     cursor: pointer;
     box-shadow: 0 2px 4px #7a7860;
-    height: 1.5%;
+    height: 30px;
 }
 
 .toolbar button:hover,
-input:hover,
-select:hover {
+.toolbar input:hover,
+.toolbar select:hover {
     background-color: #7a7860 !important;
 }
