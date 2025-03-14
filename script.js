@@ -72,8 +72,8 @@ const mouse = {
 
 //brush attributes
 const sizeMax = 100;
-const sizeMin = 5;
-const sizeInc = 5;
+const sizeMin = 1;
+const sizeInc = 2;
 
 const brush = {
     mode: 'draw',
@@ -83,7 +83,11 @@ const brush = {
     cursorColour: 'black',
     font: document.getElementById('font').value,
     fontSize: document.getElementById('fontSize').value,
-    type: 'round',
+    style: 'round',
+    img: new Image(),
+    pattern: null,
+    fgPattern: null,
+    bgPattern: null,
     isFilling: false,
     increaseSize: function () {
         if (this.size <= sizeMax - sizeInc) {
@@ -127,11 +131,21 @@ document.addEventListener('keydown', function (event) {
 document.getElementById('colorPicker').addEventListener('change', function () {
     //get the selected color from the color picker
     brush.colour = document.getElementById('colorPicker').value;
+
+    //change pattern colour too if there is a pattern
+    if (brush.pattern != null) {
+        brush.fgPattern = createPattern(brush.img, brush.colour);
+    }
 });
 
 document.getElementById('bgColorPicker').addEventListener('change', function () {
     //get the selected color from the color picker
     brush.bgColour = document.getElementById('bgColorPicker').value;
+
+    //change pattern colour too if there is a pattern
+    if (brush.pattern != null) {
+        brush.bgPattern = createPattern(brush.img, brush.bgColour);
+    }
 });
 
 //set brush to fill
@@ -151,6 +165,31 @@ document.getElementById('pen').addEventListener('click', function () {
 
     document.getElementById('decrease').style.backgroundColor = '#f0ecc0';
     document.getElementById('decrease').disabled = false;
+
+    //enable brush style
+    document.getElementById('style').style.backgroundColor = '#f0ecc0';
+    document.getElementById('style').disabled = false;
+});
+
+//change pen style
+document.getElementById('style').addEventListener('change', function () {
+    brush.style = document.getElementById('style').value;
+
+    //check if style is a path to a pattern img
+    if (brush.style.includes('patterns/')) {
+        brush.img.src = brush.style;
+        brush.img.onload = function () {
+            brush.fgPattern = createPattern(brush.img, brush.colour);
+            brush.bgPattern = createPattern(brush.img, brush.bgColour);
+        };
+    } else {
+        brush.fgPattern = null;
+        brush.bgPattern = null;
+        brush.pattern = null;
+    }
+
+    //clear the overlay canvas
+    ctxOverlay.clearRect(0, 0, canvasOverlay.width, canvasOverlay.height);
 });
 
 //set brush to erase
@@ -294,13 +333,17 @@ canvasOverlay.addEventListener('mousedown', function (event) {
 
     //draw
     if (brush.mode === 'draw' && mouse.button === 0) {
+        //set appropriate coloured pattern
+        if (brush.fgPattern != null) {
+            brush.pattern = brush.fgPattern;
+        }
+
         drawLine(mouse.prevX, mouse.prevY, mouse.x, mouse.y, brush.colour, layers[curLayer].ctx);
     } else if (brush.mode === 'text' && mouse.button === 0) {
         let text = prompt('Enter your text:', '...');
         if (text === null) {
             text = '';
         }
-
         writeText(mouse.x, mouse.y, text, brush.fontSize + ' ' + brush.font, brush.colour, layers[curLayer].ctx);
     } else if (brush.mode === 'fill' && mouse.button === 0) {
         //floodfill function
@@ -311,6 +354,11 @@ canvasOverlay.addEventListener('mousedown', function (event) {
         fill(layers[curLayer].ctx, mouse.x, mouse.y, brush.bgColour);
 
     } else if (brush.mode === 'draw' && mouse.button === 2) {
+        //set appropriate coloured pattern
+        if (brush.bgPattern != null) {
+            brush.pattern = brush.bgPattern;
+        }
+
         drawLine(mouse.prevX, mouse.prevY, mouse.x, mouse.y, brush.bgColour, layers[curLayer].ctx);
     } else if (brush.mode === 'erase') {
         //use destination out to erase the layer
@@ -387,29 +435,33 @@ canvasOverlay.addEventListener('mousemove', function (event) {
     }
 });
 
-// Function used to grey out selected brush type button
+//function used to grey out selected brush type button
 function brushTypeSelection(type) {
-    // Set all to default colour
+    //set all to default colour
     document.getElementById('fill').style.backgroundColor = '#f0ecc0';
     document.getElementById('pen').style.backgroundColor = '#f0ecc0';
     document.getElementById('erase').style.backgroundColor = '#f0ecc0';
     document.getElementById('text').style.backgroundColor = '#f0ecc0';
 
-    // Disable font size and type options
+    //disable font size and type options
     document.getElementById('fontSize').style.backgroundColor = '#7a7860';
     document.getElementById('fontSize').disabled = true;
 
     document.getElementById('font').style.backgroundColor = '#7a7860';
     document.getElementById('font').disabled = true;
 
-    // Disable increase and decrease
+    //disable increase and decrease
     document.getElementById('increase').style.backgroundColor = '#7a7860';
     document.getElementById('increase').disabled = true;
 
     document.getElementById('decrease').style.backgroundColor = '#7a7860';
     document.getElementById('decrease').disabled = true;
 
-    // Grey out selected brush
+    //disable brush style
+    document.getElementById('style').style.backgroundColor = '#7a7860';
+    document.getElementById('style').disabled = true;
+
+    //grey out selected brush
     document.getElementById(type).style.backgroundColor = '#7a7860';
 }
 
@@ -441,6 +493,26 @@ function hexToRGBA(colour) {
     var b = bigint & 255;
 
     return [r, g, b, 255];
+}
+
+//creates pattern and changes the colour of it
+function createPattern(img, colour) {
+    let canvasPattern = document.createElement('canvas');
+    let ctxPattern = canvasPattern.getContext('2d');
+
+    //set size to match the image
+    canvasPattern.width = img.width;
+    canvasPattern.height = img.height;
+
+    //sraw the image
+    ctxPattern.drawImage(img, 0, 0);
+
+    //apply colour overlay
+    ctxPattern.globalCompositeOperation = 'source-atop';
+    ctxPattern.fillStyle = colour;
+    ctxPattern.fillRect(0, 0, img.width, img.height);
+
+    return ctxPattern.createPattern(canvasPattern, 'repeat');
 }
 
 // Phil Function based on one from William Malone
@@ -529,9 +601,16 @@ function saveCanvas(context) {
 //draw line
 function drawLine(startX, startY, endX, endY, colour, context) {
     //line properties
-    context.strokeStyle = colour;
+    //choose colour or pattern
+    if (brush.pattern !== null) {
+        context.strokeStyle = brush.pattern;
+        context.lineCap = 'round';
+    } else {
+        context.strokeStyle = colour;
+        context.lineCap = brush.style;
+    }
+
     context.lineWidth = brush.size;
-    context.lineCap = brush.type;
 
     //draw line
     context.beginPath();
