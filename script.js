@@ -1,5 +1,26 @@
-//get all drawing canvases and set size
-layers = [
+// page elements
+const elements = {
+    colourPicker: document.getElementById('colourPicker'),
+    bgColourPicker: document.getElementById('bgColourPicker'),
+    decrease: document.getElementById('decrease'),
+    increase: document.getElementById('increase'),
+    toolSelect: document.getElementById('tool'),
+    style: document.getElementById('style'),
+    fontSize: document.getElementById('fontSize'),
+    font: document.getElementById('font'),
+    layerSelect: document.getElementById('layers'),
+    undo: document.getElementById('undo'),
+    redo: document.getElementById('redo'),
+    clear: document.getElementById('clear'),
+    save: document.getElementById('save'),
+    pin: document.getElementById('pin'),
+    toolbar: document.getElementById('toolbar'),
+};
+
+// canvas layers
+const canvasOverlay = /** @type {HTMLCanvasElement} */ document.getElementById('canvasOverlay');
+const ctxOverlay = canvasOverlay.getContext('2d');
+const layers = [
     {
         canvas: /** @type {HTMLCanvasElement} */ document.getElementById('canvas'),
         ctx: document.getElementById('canvas').getContext('2d'),
@@ -13,48 +34,7 @@ layers = [
         ctx: document.getElementById('canvas2').getContext('2d'),
     }
 ]
-
 var curLayer = 0;
-
-//set size of every canvas
-layers.forEach(layer => {
-    layer.canvas.width = window.innerWidth;
-    layer.canvas.height = window.innerHeight;
-})
-
-//get canvas for overlay for the cursor and set size
-const canvasOverlay = /** @type {HTMLCanvasElement} */ document.getElementById('canvasOverlay');
-const ctxOverlay = canvasOverlay.getContext('2d');
-canvasOverlay.width = window.innerWidth;
-canvasOverlay.height = window.innerHeight;
-
-//resize canvas with window resize
-window.addEventListener('resize', function () {
-    //save layers to prevent it from being erased when resizing
-    let layerData = layers.map(layer => layer.ctx.getImageData(0, 0, layer.canvas.width, layer.canvas.height));
-    layers.forEach((layer, i) => {
-        layer.canvas.width = window.innerWidth;
-        layer.canvas.height = window.innerHeight;
-        layer.ctx.putImageData(layerData[i], 0, 0);
-    });
-
-
-    //resize
-    layers.forEach(layer => {
-        layer.canvas.width = window.innerWidth;
-        layer.canvas.height = window.innerHeight;
-    })
-
-    canvasOverlay.width = window.innerWidth;
-    canvasOverlay.height = window.innerHeight;
-
-    //put image data back onto the layers
-    let i = 0;
-    layers.forEach(layer => {
-        layerData.push(layer.ctx.putImageData(layerData[i], 0, 0));
-        i++;
-    })
-})
 
 //undo and redo image data
 const history = {
@@ -74,15 +54,14 @@ const mouse = {
 const sizeMax = 100;
 const sizeMin = 1;
 const sizeInc = 2;
-
 const brush = {
     mode: 'draw',
     size: 10,
-    colour: document.getElementById('colorPicker').value,
-    bgColour: document.getElementById('bgColorPicker').value,
+    colour: elements.colourPicker.value,
+    bgColour: elements.bgColourPicker.value,
     cursorColour: 'black',
-    font: document.getElementById('font').value,
-    fontSize: document.getElementById('fontSize').value,
+    font: elements.font.value,
+    fontSize: elements.fontSize.value,
     style: 'round',
     img: new Image(),
     pattern: null,
@@ -92,9 +71,9 @@ const brush = {
     increaseSize: function () {
         if (this.size <= sizeMax - sizeInc) {
             this.size += sizeInc;
-            document.getElementById('decrease').style.backgroundColor = '#f0ecc0';
+            elements.decrease.style.backgroundColor = '#f0ecc0';
         } else {
-            document.getElementById('increase').style.backgroundColor = '#7a7860';
+            elements.increase.style.backgroundColor = '#7a7860';
         }
         //clear the overlay canvas
         ctxOverlay.clearRect(0, 0, canvasOverlay.width, canvasOverlay.height);
@@ -102,9 +81,9 @@ const brush = {
     decreaseSize: function () {
         if (this.size >= sizeMin + sizeInc) {
             this.size -= sizeInc;
-            document.getElementById('increase').style.backgroundColor = '#f0ecc0';
+            elements.increase.style.backgroundColor = '#f0ecc0';
         } else {
-            document.getElementById('decrease').style.backgroundColor = '#7a7860';
+            elements.decrease.style.backgroundColor = '#7a7860';
         }
         //clear the overlay canvas
         ctxOverlay.clearRect(0, 0, canvasOverlay.width, canvasOverlay.height);
@@ -112,9 +91,13 @@ const brush = {
 }
 
 //toolbar attributes
-var pin = true;
+var isPinned = true;
 
-//change brush attributes with keyboard
+// events
+window.addEventListener('resize', function () {
+    layerResize();
+})
+
 document.addEventListener('keydown', function (event) {
     //check the key pressed
     var keyPressed = event.key;
@@ -140,184 +123,6 @@ document.addEventListener('keydown', function (event) {
     }
 });
 
-//chnage brush colour with toolbar
-document.getElementById('colorPicker').addEventListener('change', function () {
-    //get the selected color from the color picker
-    brush.colour = document.getElementById('colorPicker').value;
-
-    //change pattern colour too if there is a pattern
-    if (brush.pattern != null) {
-        brush.fgPattern = createPattern(brush.img, brush.colour);
-    }
-});
-
-document.getElementById('bgColorPicker').addEventListener('change', function () {
-    //get the selected color from the color picker
-    brush.bgColour = document.getElementById('bgColorPicker').value;
-
-    //change pattern colour too if there is a pattern
-    if (brush.pattern != null) {
-        brush.bgPattern = createPattern(brush.img, brush.bgColour);
-    }
-});
-
-//set brush to fill
-document.getElementById('fill').addEventListener('click', function () {
-    brush.mode = 'fill';
-    brushTypeSelection('fill');
-});
-
-//set brush to draw
-document.getElementById('pen').addEventListener('click', function () {
-    brush.mode = 'draw';
-    brushTypeSelection('pen');
-
-    // Enable increase and decrease
-    document.getElementById('increase').style.backgroundColor = '#f0ecc0';
-    document.getElementById('increase').disabled = false;
-
-    document.getElementById('decrease').style.backgroundColor = '#f0ecc0';
-    document.getElementById('decrease').disabled = false;
-
-    //enable brush style
-    document.getElementById('style').style.backgroundColor = '#f0ecc0';
-    document.getElementById('style').disabled = false;
-});
-
-//change pen style
-document.getElementById('style').addEventListener('change', function () {
-    brush.style = document.getElementById('style').value;
-
-    //check if style is a path to a pattern img
-    if (brush.style.includes('patterns/')) {
-        brush.img.src = brush.style;
-        brush.img.onload = function () {
-            brush.fgPattern = createPattern(brush.img, brush.colour);
-            brush.bgPattern = createPattern(brush.img, brush.bgColour);
-        };
-    } else {
-        brush.fgPattern = null;
-        brush.bgPattern = null;
-        brush.pattern = null;
-    }
-
-    //clear the overlay canvas
-    ctxOverlay.clearRect(0, 0, canvasOverlay.width, canvasOverlay.height);
-});
-
-//set brush to erase
-document.getElementById('erase').addEventListener('click', function () {
-    brush.mode = 'erase';
-    brushTypeSelection('erase');
-
-    // Enable increase and decrease
-    document.getElementById('increase').style.backgroundColor = '#f0ecc0';
-    document.getElementById('increase').disabled = false;
-
-    document.getElementById('decrease').style.backgroundColor = '#f0ecc0';
-    document.getElementById('decrease').disabled = false;
-});
-
-//change brush size with toolbar
-document.getElementById('increase').addEventListener('click', function () {
-    brush.increaseSize();
-});
-
-document.getElementById('decrease').addEventListener('click', function () {
-    brush.decreaseSize();
-});
-
-//set brush to text
-document.getElementById('text').addEventListener('click', function () {
-    brush.mode = 'text';
-    brushTypeSelection('text');
-
-    // Make font size option available
-    document.getElementById('fontSize').style.backgroundColor = '#f0ecc0';
-    document.getElementById('fontSize').disabled = false;
-
-    document.getElementById('font').style.backgroundColor = '#f0ecc0';
-    document.getElementById('font').disabled = false;
-});
-
-//change font
-document.getElementById('font').addEventListener('change', function () {
-    brush.font = document.getElementById('font').value;
-    //clear the overlay canvas
-    ctxOverlay.clearRect(0, 0, canvasOverlay.width, canvasOverlay.height);
-});
-
-//change font size
-document.getElementById('fontSize').addEventListener('change', function () {
-    brush.fontSize = document.getElementById('fontSize').value;
-    //clear the overlay canvas
-    ctxOverlay.clearRect(0, 0, canvasOverlay.width, canvasOverlay.height);
-});
-
-//swap layers
-document.getElementById('layers').addEventListener('change', function () {
-    curLayer = Number(document.getElementById('layers').value);
-});
-
-//undo
-document.getElementById('undo').addEventListener('click', function () {
-    undo();
-});
-
-//redo
-document.getElementById('redo').addEventListener('click', function () {
-    redo();
-});
-
-//clear canvas
-document.getElementById('clear').addEventListener('click', function () {
-    //reset filling
-    brush.isFilling = false;
-
-    //save image data before clearing
-    saveCanvas(layers[curLayer].ctx);
-
-    layers[curLayer].ctx.clearRect(0, 0, layers[curLayer].canvas.width, layers[curLayer].canvas.height);
-});
-
-//save image
-document.getElementById('save').addEventListener('click', function () {
-    //reset filling
-    brush.isFilling = false;
-
-    //clear the overlay canvas
-    ctxOverlay.clearRect(0, 0, canvasOverlay.width, canvasOverlay.height);
-
-    //loop through all layers and get image data
-    for (let i = layers.length - 1; i >= 0; i--) {
-        ctxOverlay.globalCompositeOperation = 'source-over';
-        ctxOverlay.drawImage(layers[i].canvas, 0, 0);
-    }
-
-    //get url of canvas image and open it in a new tab
-    window.open(canvasOverlay.toDataURL());
-
-    //clear the overlay canvas again
-    ctxOverlay.clearRect(0, 0, canvasOverlay.width, canvasOverlay.height);
-});
-
-//pin and unpin toolbar
-document.getElementById('pin').addEventListener('click', function () {
-    if (pin) {
-        pin = false;
-
-        //send upwards and change text if unpinned
-        document.getElementById('toolbar').classList.add('hidden');
-        document.getElementById('pin').innerText = 'Pin';
-    } else {
-        pin = true;
-
-        //keep the toolbar down and change text if pinned
-        document.getElementById('toolbar').classList.remove('hidden');
-        document.getElementById('pin').innerText = 'Unpin';
-    }
-});
-
 canvasOverlay.addEventListener('mousedown', function (event) {
     //set mouse down to true (drag event doesnt work for me >.<)
     mouse.down = true;
@@ -329,7 +134,7 @@ canvasOverlay.addEventListener('mousedown', function (event) {
     const rect = canvasOverlay.getBoundingClientRect();
     mouse.x = event.clientX - rect.left;
     mouse.y = event.clientY - rect.top;
-    mouse.button = event.button;
+    mouse.button = event.buttons;
 
     //save current image data to history before next line is drawn
     saveCanvas(layers[curLayer].ctx);
@@ -440,13 +245,203 @@ canvasOverlay.addEventListener('mousemove', function (event) {
     //pull toolbar down when mouse hover at top
     if (!pin) {
         if (mouse.y < 15 && !mouse.down) {
-            document.getElementById('toolbar').classList.remove('hidden');
+            elements.toolbar.classList.remove('hidden');
         } else {
             //reset bar state
-            document.getElementById('toolbar').classList.add('hidden');
+            elements.toolbar.classList.add('hidden');
         }
     }
 });
+
+//change brush colour with toolbar
+elements.colourPicker.addEventListener('change', function () {
+    //get the selected color from the color picker
+    brush.colour = elements.colourPicker.value;
+
+    //change pattern colour too if there is a pattern
+    if (brush.pattern != null) {
+        brush.fgPattern = createPattern(brush.img, brush.colour);
+    }
+});
+
+elements.bgColourPicker.addEventListener('change', function () {
+    //get the selected color from the color picker
+    brush.bgColour = elements.bgColourPicker.value;
+
+    //change pattern colour too if there is a pattern
+    if (brush.pattern != null) {
+        brush.bgPattern = createPattern(brush.img, brush.bgColour);
+    }
+});
+
+//select tool from drop down
+elements.toolSelect.addEventListener('change', function () {
+    brush.mode = elements.toolSelect.value;
+
+    // Hide pen options
+    elements.increase.hidden = true;
+    elements.decrease.hidden = true;
+    elements.style.hidden = true;
+
+    // Hide font size option available
+    elements.fontSize.hidden = true;
+    elements.font.hidden = true;
+
+    if (brush.mode == 'draw' || brush.mode == 'erase') {
+        // Enable increase and decrease
+        elements.increase.hidden = false;
+        elements.decrease.hidden = false;
+
+        //enable brush style
+        elements.style.hidden = false;
+    } else if (brush.mode == 'text') {
+        // Make font size option available
+        elements.fontSize.hidden = false;
+        elements.font.hidden = false;
+    }
+});
+
+//change pen style
+elements.style.addEventListener('change', function () {
+    brush.style = elements.style.value;
+
+    //check if style is a path to a pattern img
+    if (brush.style.includes('patterns/')) {
+        brush.img.src = brush.style;
+        brush.img.onload = function () {
+            brush.fgPattern = createPattern(brush.img, brush.colour);
+            brush.bgPattern = createPattern(brush.img, brush.bgColour);
+        };
+    } else {
+        brush.fgPattern = null;
+        brush.bgPattern = null;
+        brush.pattern = null;
+    }
+
+    //clear the overlay canvas
+    ctxOverlay.clearRect(0, 0, canvasOverlay.width, canvasOverlay.height);
+});
+
+
+
+//change brush size with toolbar
+elements.increase.addEventListener('click', function () {
+    brush.increaseSize();
+});
+
+elements.decrease.addEventListener('click', function () {
+    brush.decreaseSize();
+});
+
+//change font
+elements.font.addEventListener('change', function () {
+    brush.font = elements.font.value;
+    //clear the overlay canvas
+    ctxOverlay.clearRect(0, 0, canvasOverlay.width, canvasOverlay.height);
+});
+
+//change font size
+elements.fontSize.addEventListener('change', function () {
+    brush.fontSize = elements.fontSize.value;
+    //clear the overlay canvas
+    ctxOverlay.clearRect(0, 0, canvasOverlay.width, canvasOverlay.height);
+});
+
+//swap layers
+elements.layerSelect.addEventListener('change', function () {
+    curLayer = Number(elements.layerSelect.value);
+});
+
+//undo
+elements.undo.addEventListener('click', function () {
+    undo();
+});
+
+//redo
+elements.redo.addEventListener('click', function () {
+    redo();
+});
+
+//clear canvas
+elements.clear.addEventListener('click', function () {
+    //reset filling
+    brush.isFilling = false;
+
+    //save image data before clearing
+    saveCanvas(layers[curLayer].ctx);
+
+    layers[curLayer].ctx.clearRect(0, 0, layers[curLayer].canvas.width, layers[curLayer].canvas.height);
+});
+
+//save image
+elements.save.addEventListener('click', function () {
+    //reset filling
+    brush.isFilling = false;
+
+    //clear the overlay canvas
+    ctxOverlay.clearRect(0, 0, canvasOverlay.width, canvasOverlay.height);
+
+    //loop through all layers and get image data
+    for (let i = layers.length - 1; i >= 0; i--) {
+        ctxOverlay.globalCompositeOperation = 'source-over';
+        ctxOverlay.drawImage(layers[i].canvas, 0, 0);
+    }
+
+    //get url of canvas image and open it in a new tab
+    window.open(canvasOverlay.toDataURL());
+
+    //clear the overlay canvas again
+    ctxOverlay.clearRect(0, 0, canvasOverlay.width, canvasOverlay.height);
+});
+
+//pin and unpin toolbar
+elements.pin.addEventListener('click', function () {
+    if (pin) {
+        isPinned = false;
+
+        //send upwards and change text if unpinned
+        elements.toolbar.classList.add('hidden');
+        elements.pin.innerText = 'Pin';
+    } else {
+        isPinned = true;
+
+        //keep the toolbar down and change text if pinned
+        elements.toolbar.classList.remove('hidden');
+        elements.pin.innerText = 'Unpin';
+    }
+});
+
+// initialise layers
+function initialiseLayers() {
+    //set size of every canvas
+    canvasOverlay.width = window.innerWidth;
+    canvasOverlay.height = window.innerHeight;
+    layers.forEach(layer => {
+        layer.canvas.width = window.innerWidth;
+        layer.canvas.height = window.innerHeight;
+    })
+}
+
+// resizing layers
+function layerResize() {
+    //save layers to prevent it from being erased when resizing
+    let layerData = layers.map(layer => layer.ctx.getImageData(0, 0, layer.canvas.width, layer.canvas.height));
+    layers.forEach((layer, i) => {
+        layer.canvas.width = window.innerWidth;
+        layer.canvas.height = window.innerHeight;
+        layer.ctx.putImageData(layerData[i], 0, 0);
+    });
+
+    canvasOverlay.width = window.innerWidth;
+    canvasOverlay.height = window.innerHeight;
+
+    //put image data back onto the layers
+    let i = 0;
+    layers.forEach(layer => {
+        layerData.push(layer.ctx.putImageData(layerData[i], 0, 0));
+        i++;
+    })
+}
 
 function undo() {
     if (history.position == history.imgData.length) {
@@ -462,9 +457,9 @@ function undo() {
         history.position--;
 
         history.imgData[history.position].context.putImageData(history.imgData[history.position].data, 0, 0);
-        document.getElementById('redo').style.backgroundColor = '#f0ecc0';
+        elements.redo.style.backgroundColor = '#f0ecc0';
     } else {
-        document.getElementById('undo').style.backgroundColor = '#7a7860';
+        elements.undo.style.backgroundColor = '#7a7860';
     }
 }
 
@@ -477,40 +472,10 @@ function redo() {
         history.position++;
 
         history.imgData[history.position].context.putImageData(history.imgData[history.position].data, 0, 0);
-        document.getElementById('undo').style.backgroundColor = '#f0ecc0';
+        elements.undo.style.backgroundColor = '#f0ecc0';
     } else {
-        document.getElementById('redo').style.backgroundColor = '#7a7860';
+        elements.redo.style.backgroundColor = '#7a7860';
     }
-}
-
-//function used to grey out selected brush type button
-function brushTypeSelection(type) {
-    //set all to default colour
-    document.getElementById('fill').style.backgroundColor = '#f0ecc0';
-    document.getElementById('pen').style.backgroundColor = '#f0ecc0';
-    document.getElementById('erase').style.backgroundColor = '#f0ecc0';
-    document.getElementById('text').style.backgroundColor = '#f0ecc0';
-
-    //disable font size and type options
-    document.getElementById('fontSize').style.backgroundColor = '#7a7860';
-    document.getElementById('fontSize').disabled = true;
-
-    document.getElementById('font').style.backgroundColor = '#7a7860';
-    document.getElementById('font').disabled = true;
-
-    //disable increase and decrease
-    document.getElementById('increase').style.backgroundColor = '#7a7860';
-    document.getElementById('increase').disabled = true;
-
-    document.getElementById('decrease').style.backgroundColor = '#7a7860';
-    document.getElementById('decrease').disabled = true;
-
-    //disable brush style
-    document.getElementById('style').style.backgroundColor = '#7a7860';
-    document.getElementById('style').disabled = true;
-
-    //grey out selected brush
-    document.getElementById(type).style.backgroundColor = '#7a7860';
 }
 
 //get colour  of current pixel
@@ -681,3 +646,4 @@ function writeText(x, y, text, font, colour, context) {
     context.fillStyle = colour;
     context.fillText(text, x, y);
 }
+

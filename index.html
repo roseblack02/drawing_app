@@ -19,12 +19,16 @@
 
 
     <div class="toolbar" id="toolbar">
-        <input type="color" id="colorPicker" value="#000000">
-        <input type="color" id="bgColorPicker" value="#ffffff">
+        <input type="color" id="colourPicker" value="#000000">
+        <input type="color" id="bgColourPicker" value="#ffffff">
 
-        <button id="fill">Fill</button>
+        <select name="tool" id="tool">
+            <option value="draw">Pen</option>
+            <option value="erase">Eraser</option>
+            <option value="fill">Fill</option>
+            <option value="text">Text</option>
+        </select>
 
-        <button id="pen" style="background-color: #7a7860;">Pen</button>
         <select name="style" id="style">
             <option value="round">Round</option>
             <option value="square">Square</option>
@@ -32,18 +36,17 @@
             <option value="patterns/mediumShade.png">Mid Shade</option>
             <option value="patterns/heavyShade.png">Heavy Shade</option>
         </select>
-        <button id="erase">Eraser</button>
+
         <button id="increase">+</button>
         <button id="decrease">-</button>
 
-        <button id="text">Text</button>
-        <select name="font" id="font" disabled=true style="background-color: #7a7860;">
+        <select name="font" id="font" hidden=true>
             <option value="Arial">Arial</option>
             <option value="Courier New">Courier New</option>
             <option value="Times New Roman">Times New Roman</option>
             <option value="Verdana">Verdana</option>
         </select>
-        <select name="fontSize" id="fontSize" disabled=true style="background-color: #7a7860;">
+        <select name="fontSize" id="fontSize" hidden=true>
             <option value="5px">5px</option>
             <option value="10px">10px</option>
             <option value="15px">15px</option>
