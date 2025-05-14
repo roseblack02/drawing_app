@@ -24,7 +24,8 @@ canvas {
 }
 
 .toolbar.hidden {
-    top: -60px;
+    top: -300px;
+    transition: top 1s ease;
 }
 
 .toolbar button,

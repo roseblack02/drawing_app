@@ -112,7 +112,6 @@ const brush = {
 }
 
 //toolbar attributes
-const barHideAmount = '-59px';
 var pin = true;
 
 //change brush attributes with keyboard
@@ -290,10 +289,10 @@ document.getElementById('save').addEventListener('click', function () {
     ctxOverlay.clearRect(0, 0, canvasOverlay.width, canvasOverlay.height);
 
     //loop through all layers and get image data
-    layers.forEach(layer => {
+    for (let i = layers.length - 1; i >= 0; i--) {
         ctxOverlay.globalCompositeOperation = 'source-over';
-        ctxOverlay.drawImage(layer.canvas, 0, 0);
-    })
+        ctxOverlay.drawImage(layers[i].canvas, 0, 0);
+    }
 
     //get url of canvas image and open it in a new tab
     window.open(canvasOverlay.toDataURL());
