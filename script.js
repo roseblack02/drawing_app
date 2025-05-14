@@ -93,10 +93,14 @@ const brush = {
 //toolbar attributes
 var isPinned = true;
 
+window.addEventListener('load', function () {
+    initialiseLayers();
+});
+
 // events
 window.addEventListener('resize', function () {
     layerResize();
-})
+});
 
 document.addEventListener('keydown', function (event) {
     //check the key pressed
@@ -134,7 +138,7 @@ canvasOverlay.addEventListener('mousedown', function (event) {
     const rect = canvasOverlay.getBoundingClientRect();
     mouse.x = event.clientX - rect.left;
     mouse.y = event.clientY - rect.top;
-    mouse.button = event.buttons;
+    mouse.button = event.button;
 
     //save current image data to history before next line is drawn
     saveCanvas(layers[curLayer].ctx);
@@ -243,7 +247,7 @@ canvasOverlay.addEventListener('mousemove', function (event) {
     }
 
     //pull toolbar down when mouse hover at top
-    if (!pin) {
+    if (!isPinned) {
         if (mouse.y < 15 && !mouse.down) {
             elements.toolbar.classList.remove('hidden');
         } else {
@@ -396,7 +400,7 @@ elements.save.addEventListener('click', function () {
 
 //pin and unpin toolbar
 elements.pin.addEventListener('click', function () {
-    if (pin) {
+    if (isPinned) {
         isPinned = false;
 
         //send upwards and change text if unpinned
