@@ -11,15 +11,20 @@ canvas {
 .toolbar {
     display: flex;
     align-items: center;
-    position: fixed;
+    position: absolute;
     top: 0;
     left: 0;
     width: 100%;
     background-color: #f0f0f0;
     padding: 10px;
-    box-shadow: 0 2px 4px #7e7e7e;
+    box-shadow: 0 2px 4px #7a7860;
     flex-wrap: wrap;
     justify-content: flex-start;
+    transition: top 0.3s ease;
+}
+
+.toolbar.hidden {
+    top: -60px;
 }
 
 .toolbar button,

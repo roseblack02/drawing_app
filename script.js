@@ -2,7 +2,7 @@
 layers = [
     {
         canvas: /** @type {HTMLCanvasElement} */ document.getElementById('canvas'),
-        ctx: document.getElementById('canvas2').getContext('2d'),
+        ctx: document.getElementById('canvas').getContext('2d'),
     },
     {
         canvas: /** @type {HTMLCanvasElement} */ document.getElementById('canvas1'),
@@ -10,7 +10,7 @@ layers = [
     },
     {
         canvas: /** @type {HTMLCanvasElement} */ document.getElementById('canvas2'),
-        ctx: document.getElementById('canvas').getContext('2d'),
+        ctx: document.getElementById('canvas2').getContext('2d'),
     }
 ]
 
@@ -110,6 +110,10 @@ const brush = {
         ctxOverlay.clearRect(0, 0, canvasOverlay.width, canvasOverlay.height);
     },
 }
+
+//toolbar attributes
+const barHideAmount = '-59px';
+var pin = true;
 
 //change brush attributes with keyboard
 document.addEventListener('keydown', function (event) {
@@ -298,6 +302,23 @@ document.getElementById('save').addEventListener('click', function () {
     ctxOverlay.clearRect(0, 0, canvasOverlay.width, canvasOverlay.height);
 });
 
+//pin and unpin toolbar
+document.getElementById('pin').addEventListener('click', function () {
+    if (pin) {
+        pin = false;
+
+        //send upwards and change text if unpinned
+        document.getElementById('toolbar').classList.add('hidden');
+        document.getElementById('pin').innerText = 'Pin';
+    } else {
+        pin = true;
+
+        //keep the toolbar down and change text if pinned
+        document.getElementById('toolbar').classList.remove('hidden');
+        document.getElementById('pin').innerText = 'Unpin';
+    }
+});
+
 canvasOverlay.addEventListener('mousedown', function (event) {
     //set mouse down to true (drag event doesnt work for me >.<)
     mouse.down = true;
@@ -415,6 +436,16 @@ canvasOverlay.addEventListener('mousemove', function (event) {
     } else {
         mouse.prevX = mouse.x;
         mouse.prevY = mouse.y;
+    }
+
+    //pull toolbar down when mouse hover at top
+    if (!pin) {
+        if (mouse.y < 15 && !mouse.down) {
+            document.getElementById('toolbar').classList.remove('hidden');
+        } else {
+            //reset bar state
+            document.getElementById('toolbar').classList.add('hidden');
+        }
     }
 });
 
@@ -540,7 +571,7 @@ function fill(context, x, y, colour) {
 
     //return early if the target is the same as the fill colour or if already filling
     if (coloursMatch(targetColour, hexToRGBA(colour)) || brush.isFilling) {
-        brush.isFilling = false; c
+        brush.isFilling = false;
         return;
     }
 

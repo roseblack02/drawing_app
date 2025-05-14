@@ -10,15 +10,15 @@
 
 <body>
     <div id="canvasLayers">
-        <canvas id="canvas"></canvas>
-        <canvas id="canvas1"></canvas>
         <canvas id="canvas2"></canvas>
+        <canvas id="canvas1"></canvas>
+        <canvas id="canvas"></canvas>
     </div>
 
     <canvas id="canvasOverlay" oncontextmenu="return false;"></canvas>
 
 
-    <div class="toolbar">
+    <div class="toolbar" id="toolbar">
         <input type="color" id="colorPicker" value="#000000">
         <input type="color" id="bgColorPicker" value="#ffffff">
 
@@ -69,6 +69,8 @@
         <button id="clear">Clear Layer</button>
 
         <button id="save">Save Image</button>
+
+        <button id="pin" style="margin-left: auto; margin-right: 20px;">Unpin</button>
     </div>
 
     <script src="script.js"></script>
