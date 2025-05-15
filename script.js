@@ -19,19 +19,19 @@ const elements = {
 
 // canvas layers
 const canvasOverlay = /** @type {HTMLCanvasElement} */ document.getElementById('canvasOverlay');
-const ctxOverlay = canvasOverlay.getContext('2d');
+const ctxOverlay = canvasOverlay.getContext('2d', { willReadFrequently: true, desynchronized: true });
 const layers = [
     {
         canvas: /** @type {HTMLCanvasElement} */ document.getElementById('canvas'),
-        ctx: document.getElementById('canvas').getContext('2d'),
+        ctx: document.getElementById('canvas').getContext('2d', { willReadFrequently: true, desynchronized: true }),
     },
     {
         canvas: /** @type {HTMLCanvasElement} */ document.getElementById('canvas1'),
-        ctx: document.getElementById('canvas1').getContext('2d'),
+        ctx: document.getElementById('canvas1').getContext('2d', { willReadFrequently: true, desynchronized: true }),
     },
     {
         canvas: /** @type {HTMLCanvasElement} */ document.getElementById('canvas2'),
-        ctx: document.getElementById('canvas2').getContext('2d'),
+        ctx: document.getElementById('canvas2').getContext('2d', { willReadFrequently: true, desynchronized: true }),
     }
 ]
 var curLayer = 0;
