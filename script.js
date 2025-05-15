@@ -1,5 +1,6 @@
 // page elements
 const elements = {
+    canvasLayers: document.getElementById('canvasLayers'),
     colourPicker: document.getElementById('colourPicker'),
     bgColourPicker: document.getElementById('bgColourPicker'),
     decrease: document.getElementById('decrease'),
@@ -9,6 +10,8 @@ const elements = {
     fontSize: document.getElementById('fontSize'),
     font: document.getElementById('font'),
     layerSelect: document.getElementById('layers'),
+    addLayer: document.getElementById('add'),
+    removeLayer: document.getElementById('remove'),
     undo: document.getElementById('undo'),
     redo: document.getElementById('redo'),
     clear: document.getElementById('clear'),
@@ -16,11 +19,13 @@ const elements = {
     pin: document.getElementById('pin'),
     toolbar: document.getElementById('toolbar'),
 };
+const disableColour = '#7a7860';
+const enableColour = '#f0ecc0';
 
 // canvas layers
 const canvasOverlay = /** @type {HTMLCanvasElement} */ document.getElementById('canvasOverlay');
 const ctxOverlay = canvasOverlay.getContext('2d', { willReadFrequently: true, desynchronized: true });
-const layers = [
+var layers = [
     {
         canvas: /** @type {HTMLCanvasElement} */ document.getElementById('canvas'),
         ctx: document.getElementById('canvas').getContext('2d', { willReadFrequently: true, desynchronized: true }),
@@ -34,6 +39,7 @@ const layers = [
         ctx: document.getElementById('canvas2').getContext('2d', { willReadFrequently: true, desynchronized: true }),
     }
 ]
+const layerLimit = 9;
 var curLayer = 0;
 
 //undo and redo image data
@@ -71,9 +77,9 @@ const brush = {
     increaseSize: function () {
         if (this.size <= sizeMax - sizeInc) {
             this.size += sizeInc;
-            elements.decrease.style.backgroundColor = '#f0ecc0';
+            elements.decrease.style.backgroundColor = enableColour;
         } else {
-            elements.increase.style.backgroundColor = '#7a7860';
+            elements.increase.style.backgroundColor = disableColour;
         }
         //clear the overlay canvas
         ctxOverlay.clearRect(0, 0, canvasOverlay.width, canvasOverlay.height);
@@ -81,9 +87,9 @@ const brush = {
     decreaseSize: function () {
         if (this.size >= sizeMin + sizeInc) {
             this.size -= sizeInc;
-            elements.increase.style.backgroundColor = '#f0ecc0';
+            elements.increase.style.backgroundColor = enableColour;
         } else {
-            elements.decrease.style.backgroundColor = '#7a7860';
+            elements.decrease.style.backgroundColor = disableColour;
         }
         //clear the overlay canvas
         ctxOverlay.clearRect(0, 0, canvasOverlay.width, canvasOverlay.height);
@@ -353,7 +359,85 @@ elements.fontSize.addEventListener('change', function () {
 
 //swap layers
 elements.layerSelect.addEventListener('change', function () {
-    curLayer = Number(elements.layerSelect.value);
+    curLayer = elements.layerSelect.selectedIndex;
+
+    //disable remove layer button if on first layer
+    if (curLayer == 0) {
+        elements.removeLayer.disabled = true;
+        elements.removeLayer.style.backgroundColor = disableColour;
+    } else {
+        elements.removeLayer.disabled = false;
+        elements.removeLayer.style.backgroundColor = enableColour;
+    }
+
+    //DEBUG
+    console.log('CURRRNT LAYER: ' + curLayer)
+});
+
+//add new layer
+elements.addLayer.addEventListener('click', function () {
+    //create new canvas
+    let newLayer = document.createElement('canvas');
+    newLayer.id = 'canvas' + layers.length;
+    elements.canvasLayers.appendChild(newLayer);
+
+    //add to list
+    layers.push({
+        canvas: newLayer,
+        ctx: newLayer.getContext('2d', { willReadFrequently: true, desynchronized: true }),
+    });
+    curLayer = layers.length - 1;
+
+    //update select
+    //get layer name
+    let name = prompt('Enter your text:', 'Layer ' + (layers.length));
+    if (name === null) {
+        name = 'Layer';
+    }
+
+    let newOption = document.createElement('option');
+    newOption.innerHTML = name
+    newOption.selected = true;
+    elements.layerSelect.add(newOption);
+
+    //initialise
+    newLayer.width = window.innerWidth;
+    newLayer.height = window.innerHeight;
+
+    //disable if layer count is too high
+    if (curLayer == layerLimit) {
+        elements.addLayer.disabled = true;
+        elements.addLayer.style.backgroundColor = disableColour;
+    }
+
+    //reenable remove layer
+    if (curLayer > 0) {
+        elements.removeLayer.disabled = false;
+        elements.removeLayer.style.backgroundColor = enableColour;
+    }
+});
+
+elements.removeLayer.addEventListener('click', function () {
+    //remove canvas
+    layers[curLayer].canvas.remove();
+    layers.splice(curLayer, 1);
+
+    //remove from select and deincrement
+    elements.layerSelect.remove(curLayer);
+    curLayer--;
+    elements.layerSelect.options[curLayer].selected = 'true';
+
+    //reenable add layer
+    if (curLayer < layerLimit) {
+        elements.addLayer.disabled = false;
+        elements.addLayer.style.backgroundColor = enableColour;
+    }
+
+    //disable if on first layer
+    if (curLayer == 0) {
+        elements.removeLayer.disabled = true;
+        elements.removeLayer.style.backgroundColor = disableColour;
+    }
 });
 
 //undo
@@ -386,7 +470,7 @@ elements.save.addEventListener('click', function () {
     ctxOverlay.clearRect(0, 0, canvasOverlay.width, canvasOverlay.height);
 
     //loop through all layers and get image data
-    for (let i = layers.length - 1; i >= 0; i--) {
+    for (let i = 0; i < layers.length; i++) {
         ctxOverlay.globalCompositeOperation = 'source-over';
         ctxOverlay.drawImage(layers[i].canvas, 0, 0);
     }
@@ -461,9 +545,9 @@ function undo() {
         history.position--;
 
         history.imgData[history.position].context.putImageData(history.imgData[history.position].data, 0, 0);
-        elements.redo.style.backgroundColor = '#f0ecc0';
+        elements.redo.style.backgroundColor = enableColour;
     } else {
-        elements.undo.style.backgroundColor = '#7a7860';
+        elements.undo.style.backgroundColor = disableColour;
     }
 }
 
@@ -476,9 +560,9 @@ function redo() {
         history.position++;
 
         history.imgData[history.position].context.putImageData(history.imgData[history.position].data, 0, 0);
-        elements.undo.style.backgroundColor = '#f0ecc0';
+        elements.undo.style.backgroundColor = enableColour;
     } else {
-        elements.redo.style.backgroundColor = '#7a7860';
+        elements.redo.style.backgroundColor = disableColour;
     }
 }
 
@@ -611,8 +695,8 @@ function saveCanvas(context) {
     //saving both the context and the image data for using mutliple layers
     history.imgData.push({ context: context, data: context.getImageData(0, 0, canvasOverlay.width, canvasOverlay.height) });
 
-    document.getElementById('undo').style.backgroundColor = '#f0ecc0';
-    document.getElementById('redo').style.backgroundColor = '#7a7860';
+    document.getElementById('undo').style.backgroundColor = enableColour;
+    document.getElementById('redo').style.backgroundColor = disableColour;
 }
 
 //draw line

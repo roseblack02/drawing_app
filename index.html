@@ -10,9 +10,9 @@
 
 <body>
     <div id="canvasLayers">
-        <canvas id="canvas2"></canvas>
-        <canvas id="canvas1"></canvas>
         <canvas id="canvas"></canvas>
+        <canvas id="canvas1"></canvas>
+        <canvas id="canvas2"></canvas>
     </div>
 
     <canvas id="canvasOverlay" oncontextmenu="return false;"></canvas>
@@ -23,14 +23,14 @@
         <input type="color" id="bgColourPicker" value="#ffffff">
 
         <select name="tool" id="tool">
-            <option value="draw">Pen</option>
+            <option value="draw" selected>Pen</option>
             <option value="erase">Eraser</option>
             <option value="fill">Fill</option>
             <option value="text">Text</option>
         </select>
 
         <select name="style" id="style">
-            <option value="round">Round</option>
+            <option value="round" selected>Round</option>
             <option value="square">Square</option>
             <option value="patterns/lightShade.png">Light Shade</option>
             <option value="patterns/mediumShade.png">Mid Shade</option>
@@ -42,7 +42,7 @@
 
         <select name="font" id="font" hidden=true>
             <option value="Arial">Arial</option>
-            <option value="Courier New">Courier New</option>
+            <option value="Courier New" selected>Courier New</option>
             <option value="Times New Roman">Times New Roman</option>
             <option value="Verdana">Verdana</option>
         </select>
@@ -54,19 +54,21 @@
             <option value="25px">25px</option>
             <option value="30px">30px</option>
             <option value="35px">35px</option>
-            <option value="40px">40px</option>
+            <option value="40px" selected>40px</option>
             <option value="45px">45px</option>
             <option value="50px">50px</option>
         </select>
 
         <select name="layers" id="layers">
-            <option value="0">Layer 3</option>
-            <option value="1">Layer 2</option>
-            <option value="2">Layer 1</option>
+            <option selected>Layer 1</option>
+            <option>Layer 2</option>
+            <option>Layer 3</option>
         </select>
 
-        <button id="undo" style="background-color: #7a7860;">Undo</button>
+        <button id="add">New Layer</button>
+        <button id="remove" disabled="true" style="background-color: #7a7860;">Remove</button>
 
+        <button id="undo" style="background-color: #7a7860;">Undo</button>
         <button id="redo" style="background-color: #7a7860;">Redo</button>
 
         <button id="clear">Clear</button>
