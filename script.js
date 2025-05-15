@@ -19,7 +19,7 @@ const elements = {
     pin: document.getElementById('pin'),
     toolbar: document.getElementById('toolbar'),
 };
-const disableColour = '#7a7860';
+const disableColour = '#A7A484';
 const enableColour = '#f0ecc0';
 
 // canvas layers
@@ -546,8 +546,10 @@ function undo() {
 
         history.imgData[history.position].context.putImageData(history.imgData[history.position].data, 0, 0);
         elements.redo.style.backgroundColor = enableColour;
+        elements.redo.disabled = false;
     } else {
         elements.undo.style.backgroundColor = disableColour;
+        elements.redo.disabled = true;
     }
 }
 
@@ -561,8 +563,10 @@ function redo() {
 
         history.imgData[history.position].context.putImageData(history.imgData[history.position].data, 0, 0);
         elements.undo.style.backgroundColor = enableColour;
+        elements.redo.disabled = false;
     } else {
         elements.redo.style.backgroundColor = disableColour;
+        elements.redo.disabled = true;
     }
 }
 
@@ -695,8 +699,11 @@ function saveCanvas(context) {
     //saving both the context and the image data for using mutliple layers
     history.imgData.push({ context: context, data: context.getImageData(0, 0, canvasOverlay.width, canvasOverlay.height) });
 
-    document.getElementById('undo').style.backgroundColor = enableColour;
-    document.getElementById('redo').style.backgroundColor = disableColour;
+    elements.undo.style.backgroundColor = enableColour;
+    elements.undo.disabled = false;
+
+    elements.redo.style.backgroundColor = disableColour;
+    elements.redo.disabled = true;
 }
 
 //draw line
