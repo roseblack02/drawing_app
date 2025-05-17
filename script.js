@@ -24,19 +24,19 @@ const enableColour = '#f0ecc0';
 
 // canvas layers
 const canvasOverlay = /** @type {HTMLCanvasElement} */ document.getElementById('canvasOverlay');
-const ctxOverlay = canvasOverlay.getContext('2d', { willReadFrequently: true, desynchronized: true });
+const ctxOverlay = canvasOverlay.getContext('2d', { willReadFrequently: true });
 var layers = [
     {
         canvas: /** @type {HTMLCanvasElement} */ document.getElementById('canvas'),
-        ctx: document.getElementById('canvas').getContext('2d', { willReadFrequently: true, desynchronized: true }),
+        ctx: document.getElementById('canvas').getContext('2d', { willReadFrequently: true }),
     },
     {
         canvas: /** @type {HTMLCanvasElement} */ document.getElementById('canvas1'),
-        ctx: document.getElementById('canvas1').getContext('2d', { willReadFrequently: true, desynchronized: true }),
+        ctx: document.getElementById('canvas1').getContext('2d', { willReadFrequently: true }),
     },
     {
         canvas: /** @type {HTMLCanvasElement} */ document.getElementById('canvas2'),
-        ctx: document.getElementById('canvas2').getContext('2d', { willReadFrequently: true, desynchronized: true }),
+        ctx: document.getElementById('canvas2').getContext('2d', { willReadFrequently: true }),
     }
 ]
 const layerLimit = 9;
@@ -362,16 +362,13 @@ elements.layerSelect.addEventListener('change', function () {
     curLayer = elements.layerSelect.selectedIndex;
 
     //disable remove layer button if on first layer
-    if (curLayer == 0) {
+    if (layers.length == 1) {
         elements.removeLayer.disabled = true;
         elements.removeLayer.style.backgroundColor = disableColour;
     } else {
         elements.removeLayer.disabled = false;
         elements.removeLayer.style.backgroundColor = enableColour;
     }
-
-    //DEBUG
-    console.log('CURRRNT LAYER: ' + curLayer)
 });
 
 //add new layer
@@ -384,7 +381,7 @@ elements.addLayer.addEventListener('click', function () {
     //add to list
     layers.push({
         canvas: newLayer,
-        ctx: newLayer.getContext('2d', { willReadFrequently: true, desynchronized: true }),
+        ctx: newLayer.getContext('2d', { willReadFrequently: true }),
     });
     curLayer = layers.length - 1;
 
@@ -424,7 +421,9 @@ elements.removeLayer.addEventListener('click', function () {
 
     //remove from select and deincrement
     elements.layerSelect.remove(curLayer);
-    curLayer--;
+    if (curLayer > 0) {
+        curLayer--;
+    }
     elements.layerSelect.options[curLayer].selected = 'true';
 
     //reenable add layer
@@ -433,8 +432,8 @@ elements.removeLayer.addEventListener('click', function () {
         elements.addLayer.style.backgroundColor = enableColour;
     }
 
-    //disable if on first layer
-    if (curLayer == 0) {
+    //disable only one layer left
+    if (layers.length == 1) {
         elements.removeLayer.disabled = true;
         elements.removeLayer.style.backgroundColor = disableColour;
     }
